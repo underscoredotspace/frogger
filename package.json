@@ -1,8 +1,0 @@
-{
-  "name": "frogger",
-  "version": "1.0.0",
-  "main": "index.html",
-  "author": "Colin Tindle <ampersand@underscore.space>",
-  "license": "CC-BY-4.0",
-  "dependencies": {}
-}

@@ -1,3 +1,7 @@
+/*  A truly terrible implimentation of the classic Frogger   *\
+**  hand coded by Colin Tindle <ampersand@underscore.space>  **
+\*                 LICENCE: CC-BY-NA-4.0                     */
+
 class Rectangle {
   constructor(x, y, w, h, speed, colour) {
     this.x = x
