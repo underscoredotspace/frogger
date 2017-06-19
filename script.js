@@ -1,16 +1,15 @@
 class Rectangle {
-  constructor(x, y, w, h, speed, colour, attachable) {
+  constructor(x, y, w, h, speed, colour) {
     this.x = x
     this.y = y
     this.w = w
     this.h = h
     this.speed = speed
     this.colour = colour
-    this.attachable = attachable
+    this.dead = false
   }
 
   draw() {
-    strokeWeight(2)
     fill(this.colour)
     rect(this.x, this.y, this.w, this.h)
   }
@@ -23,7 +22,12 @@ class Frog extends Rectangle {
   }
 
   die() {
-    this.colour = 'red'
+    if (!this.dead) {
+      this.colour = 'red'
+      this.speed = 0
+      setTimeout(() => setup(), 3000)
+      this.dead = true
+    }
   }
 
   ride(what) {
@@ -41,8 +45,8 @@ class Frog extends Rectangle {
 }
 
 class Obstacle extends Rectangle {
-  constructor(xStart, y, width, speed, colour, attachable) {
-    super(xStart, y, width, gridSize, speed, colour, attachable)
+  constructor(xStart, y, width, speed, colour) {
+    super(xStart, y, width, gridSize, speed, colour)
   }
   
   move() {
@@ -56,67 +60,81 @@ class Obstacle extends Rectangle {
 }
 
 class Lane {
-  constructor(position, items, speed, colour, itemWidth, itemColour, itemPadding, itemAttachable) {
+  constructor(position, items, speed, colour, itemWidth, itemColour, itemPadding, attachable) {
     this.y = height - (position * gridSize)
     this.x = 0
     this.w = width
     this.h = gridSize
     this.colour = colour
     this.obstacles = []
-    this.createObstacles(items, speed, itemWidth, itemColour, itemPadding, itemAttachable)
+    this.attachable = attachable
+    this.createObstacles(items, speed, itemWidth, itemColour, itemPadding)
   }
 
-  createObstacles(count, speed, itemWidth, itemColour, itemPadding, itemAttachable) {
+  createObstacles(count, speed, itemWidth, itemColour, itemPadding) {
     for (let oNdx = 0; oNdx < count; oNdx++) {
       let xStart = oNdx * (itemWidth + itemPadding) + itemPadding
-      this.obstacles.push(new Obstacle(xStart, this.y, itemWidth, speed, itemColour, itemAttachable))
+      this.obstacles.push(new Obstacle(xStart, this.y, itemWidth, speed, itemColour))
     }
   }
 
   draw(frog) {
-    strokeWeight(0)
     fill(this.colour)
     rect(0, this.y, width, gridSize)
+    let drowned = true
     this.obstacles.forEach(obstacle => {
       obstacle.move()
       obstacle.draw()
-      if (frog.intersects(this)) {
-        frog.attached = false
-        if(frog.intersects(obstacle) && !obstacle.attachable) {
+        if(!this.attachable && frog.intersects(obstacle)) {
           frog.die()
-        } else if(frog.intersects(obstacle) && obstacle.attachable) {
+        } else if(this.attachable && frog.intersects(obstacle)) {
           frog.ride(obstacle)
-          frog.attached = true
-        }
-      }
-      if (frog.intersects(this) && !frog.attached) {
-        frog.die()
+        } if(this.attachable && frog.intersects(obstacle)) {
+          drowned = false
       }
     })
+
+    if (this.attachable && frog.intersects(this) && drowned) {
+      frog.die()
+    }
   }
 }
 
 const gridSize = 20
 
-function setup() {
-  createCanvas (20 * 21, 20 * 21)
-  stroke(0)
-
-
-  frogger = new Frog(width/2 - gridSize/2, height - gridSize , gridSize , gridSize , gridSize, 'lightgreen')
+function reset() {
+  frogger = new Frog(width/2 - gridSize/2, height - (gridSize * 1) , gridSize , gridSize , gridSize, 'green')
   lanes = [
-    new Lane(2, 4, 1.4, 'lightgray', 30, 'lightblue', 50, false),
-    new Lane(3, 2, 2.4, 'lightgray', 20, 'lightblue', 100, false),
-    new Lane(4, 2, -2.1, 'lightgray', 75, 'lightblue', 100, false),
-    new Lane(5, 3, -0.5, 'lightgray', 50, 'lightblue', 75, false),
+    new Lane(1, 0, 0, 'lightgreen', 0, '', 0, false),
+
+    new Lane(2, 4, 1.4, 'lightgray', 30, 'blue', 50, false),
+    new Lane(3, 2, 2.4, 'lightgray', 20, 'yellow', 100, false),
+    new Lane(4, 2, -2.1, 'lightgray', 75, 'black', 100, false),
+    new Lane(5, 3, -0.5, 'lightgray', 50, 'cyan', 75, false),
+
+    new Lane(6, 0, 0, 'lightgreen', 0, '', 0, false),
+
     new Lane(7, 2, -1.5, 'lightblue', 150, 'orange', 100, true),
-    new Lane(8, 2, 1.5, 'lightblue', 100, 'orange', 175, true)
+    new Lane(8, 4, 0.5, 'lightblue', 30, 'pink', 105, true),
+    new Lane(9, 2, -2.5, 'lightblue', 100, 'orange', 175, true),
+
+    new Lane(10, 0, 0, 'lightgreen', 0, '', 0, false),
+    new Lane(11, 0, 0, 'lightgreen', 0, '', 0, false)
   ]
+}
+
+function setup() {
+  createCanvas (gridSize * 21, gridSize * 11)
+  stroke(0)
+  strokeWeight(0)
+
+  reset()
 }
 
 function draw() {
   background(0)
   lanes.forEach(lane => lane.draw(frogger))
+
   frogger.draw()
 }
 
